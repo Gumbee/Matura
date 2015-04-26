@@ -1,0 +1,6 @@
+.DS_Store
+*~
+*.pyc
+.sass-cache
+*.py[cod]
+app/static/components/
