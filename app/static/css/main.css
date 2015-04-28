@@ -19,3 +19,8 @@ body {
   background: rgba(0, 0, 0, 0.5);
 }
 /* scrollbar section end*/
+
+/* time section */
+.time {
+	font-size: 65px;
+}
