@@ -4997,7 +4997,7 @@ a.thumbnail.active {
   padding: 15px;
   margin-bottom: 20px;
   border: 1px solid transparent;
-  border-radius: 0px;
+  border-radius: 4px;
 }
 .alert h4 {
   margin-top: 0;
@@ -6716,15 +6716,5 @@ button.close {
 .buffer-right-40 {
   margin-right: 40px;
 }
-.buffer-top-50 {
-  margin-top: 50px;
-}
-.buffer-bottom-50 {
-  margin-bottom: 50px;
-}
-.buffer-left-50 {
-  margin-left: 50px;
-}
-.buffer-right-50 {
-  margin-right: 50px;
-}
+
+
