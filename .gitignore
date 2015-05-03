@@ -4,3 +4,5 @@
 .sass-cache
 *.py[cod]
 app/static/components/
+app/databases/
+app/ssl/

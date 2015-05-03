@@ -1,1 +1,5 @@
-flask
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+sqlalchemy-utils
+Ghost.py

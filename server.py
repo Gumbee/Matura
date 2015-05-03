@@ -2,7 +2,10 @@ from app import app
 from app import db
 from app.models import User
 from flask.ext.sqlalchemy import SQLAlchemy
-import logging
+from OpenSSL import SSL
 
+context = SSL.Context(SSL.SSLv23_METHOD)
+context.use_privatekey_file('app/ssl/server.key')
+context.use_certificate_file('app/ssl/server.crt')
 db.create_all()
-app.run(debug = True, use_reloader = False)
+app.run(debug = False, ssl_context=context)

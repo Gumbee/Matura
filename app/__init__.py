@@ -1,7 +1,6 @@
 from flask import Flask, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 import os
-import logging
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.dirname(os.path.realpath(__file__)) + '/databases/mirror_database.db'
@@ -17,4 +16,4 @@ app.jinja_env.globals['bower'] = (
 )
 
 from app import views
-from app import models
+from app.models import *
