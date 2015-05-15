@@ -1,12 +1,30 @@
 {% extends 'base.html' %}
 {% block title %}AIRS{% endblock %}
 {% block body %}
-<div class="container-fluid buffer-top-10">
-	<div>
+<link rel="stylesheet" href="{{ static('css/api.css') }}">
+<link rel="stylesheet" href="{{ bower('weather-icons/css/weather-icons.css') }}">
+<div class="container-fluid">
+	<div class="left-side">
 		<h1 id="time" class="time"></h1>
+		<div id="speech-show">
+
+		</div>
+	</div>
+	<div class="right-side">
+		<div class="weather-container" id="weather-box">
+
+		</div>
+		<div class="google-container">
+			<div class="google-box" id="google-box" style="display:none;">
+			</div>
+		</div>
 	</div>
 </div>
+<audio id="tts">
+    <source src="" id="tts_source" type="audio/mpeg"/>
+</audio>
 <script src="{{ static('js/vendors/annyang.js') }}"></script>
+<script src="{{ static('js/vendors/responsivevoice.js') }}"></script>
 <script src="{{ static('js/speech.js') }}"></script>
 <script>
 
@@ -17,5 +35,37 @@
 
 	var timeInterval = setInterval(function(){time()}, 500);
 
+	var weatherApiKey = "{{ weatherApiKey }}";
+
+</script>
+<script src="{{ static('js/b-bone.js') }}"></script>
+
+<!-- Templates -->
+<script type="text/template" id="weather_template">
+	<div class="weather-box">
+		<% var phase = moon_phase.phaseofMoon %>
+		<% phase = phase.replace(/\s/g, ''); %>
+		<% phase = phase.toLowerCase(); %>
+		<div class="weather-header">
+			<span class="weather-header-span"><%= current_observation.temp_c %>°C
+			<img src="/static/img/weather/<%= current_observation.iconurl %>" width="150" /></span>
+		</div>
+		<div class="weather-content">
+		<b class="weatherText"><%= current_observation.display_location.full %></b> <small><%= current_observation.weather %></small></br>
+		Currently it is <%= current_observation.temp_c %>°Celsius outside and feels like <%= current_observation.feelslike_c %>°C<br/>
+		Wind blows <%= current_observation.wind_string %><br/>
+		The relative humidity is about <%= current_observation.relative_humidity %><br/>
+		<div class="astro">
+			<span><img src="/static/img/weather/astro/sunrise.png" height="25"/><%= moon_phase.sunrise.hour %>:<%= moon_phase.sunrise.minute %></span>
+			<span><img src="/static/img/weather/astro/sunset.png" height="25"/><%= moon_phase.sunset.hour %>:<%= moon_phase.sunset.minute %></span>
+			<span><img src="/static/img/weather/astro/<%= phase %>.png" height="25"/></span>
+			<% if((current_observation.icon == "sunny" && current_observation.temp_c > 15 && current_observation.state != 'night') || (current_observation.icon == "clear" && current_observation.temp_c > 15)){ %>
+				<span><img src="/static/img/weather/astro/shades.png" height="15"/></span>
+			<% }else if(current_observation.icon == "chancestorms" || current_observation.icon == "chancerain" || current_observation.icon == "chancesleet" || current_observation.icon == "tstorms" || current_observation.icon == "sleet" || current_observation.icon == "rain"){ %>
+				<span><img src="/static/img/weather/astro/umbrella.png" height="20"/></span>
+			<% } %>
+		</div>
+		</div>
+	</div>
 </script>
 {% endblock %}

@@ -28,6 +28,7 @@
     <meta name="theme-color" content="#ffffff">
     <!-- end of favicon -->
     <link rel="stylesheet" href="{{ static('css/bootstrap.css') }}">
+    <!-- <link rel="stylesheet" href="{{ static('css/main-backup-14-5.css') }}"> -->
     <link rel="stylesheet" href="{{ static('css/main.css') }}">
     <!-- scripts -->
     <script src="{{ bower('jquery/dist/jquery.min.js') }}"></script>
@@ -39,20 +40,6 @@
     <!--[if lt IE 7]>
         <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
     <![endif]-->
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-inverse navbar-fixed-top navbar-slide">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#"><img src="{{ static('img/favicons/android-icon-36x36.png') }}" width="21"></img></a>
-            </div>
-
-            <ul class="nav navbar-nav">
-                <li {% if active_tab == 'home' %} class="active" {% endif %}><a href="/">Home <span class="sr-only">(current)</span></a></li>
-                <li {% if active_tab == 'csstest' %} class="active" {% endif %}><a href="/csstest">CSS Test</a></li>
-            </ul>
-        </div>
-    </nav>
-    <!-- Navigation bar end -->
     {% block body %}
     {% endblock %}
 

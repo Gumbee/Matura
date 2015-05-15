@@ -118,7 +118,7 @@
       recognition = new SpeechRecognition();
 
       // Set the max number of alternative transcripts to try and match with a command
-      recognition.maxAlternatives = 5;
+      recognition.maxAlternatives = 10;
 
       // In HTTPS, turn off continuous mode for faster results.
       // In HTTP,  turn on  continuous mode for much slower results, but no repeating security notices
@@ -185,6 +185,8 @@
           // try and match recognized text to one of the commands on the list
           for (var j = 0, l = commandsList.length; j < l; j++) {
             var result = commandsList[j].command.exec(commandText);
+            console.log("result ==>");
+            console.log(result);
             if (result) {
               var parameters = result.slice(1);
               if (debugState) {

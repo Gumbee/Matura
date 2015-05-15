@@ -1,0 +1,5 @@
+{% if apicode  %}
+{{ apicode | safe }}
+<span class="refhdr"><b>Information got from Google</b></span><br/>
+<span class="reflnk">https://www.google.ch/webhp?hl=de#safe=off&hl=en-CH&q={{ query | urlencode | safe }}</span>
+{% endif %}
