@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}AIRS{% endblock %}
 {% block body %}
-<link rel="stylesheet" href="{{ static('css/api.css') }}">
-<link rel="stylesheet" href="{{ bower('weather-icons/css/weather-icons.css') }}">
 <div class="container-fluid">
 	<div class="left-side">
 		<h1 id="time" class="time"></h1>
@@ -11,12 +9,21 @@
 		</div>
 	</div>
 	<div class="right-side">
-		<div class="weather-container" id="weather-box">
+		<div class="weather-container buffer-top-20" id="weather-container">
 
 		</div>
-		<div class="google-container">
-			<div class="google-box" id="google-box" style="display:none;">
+		<div class="profile-container buffer-top-20" id="profile-container">
+
+		</div>
+		<div class="google-container buffer-top-20" id="informtaion-container" style="display:none;">
+			<div class="google-box" id="google-box">
 			</div>
+		</div>
+		<div class="google-posts-container buffer-top-20" id="post-container">
+
+		</div>
+		<div class="qr-code-container buffer-top-20" id="login-container">
+			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://localhost:5000/logkey%26key=asdasd&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
 		</div>
 	</div>
 </div>
@@ -24,31 +31,189 @@
     <source src="" id="tts_source" type="audio/mpeg"/>
 </audio>
 <script src="{{ static('js/vendors/annyang.js') }}"></script>
-<script src="{{ static('js/vendors/responsivevoice.js') }}"></script>
 <script src="{{ static('js/speech.js') }}"></script>
 <script>
+	var weatherApiKey = "{{ weatherApiKey }}";
+	var randomKey = Math.floor(Math.random()*100000000);
+	var keyChecked = false;
 
+	// Set QR-Code to localhost:5000/logkey%key=randomKey
+	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://localhost:5000/logkey%26key=' + randomKey + '&bgcolor=F5F5F5');
+	// Refresh randomKey and QR-Code
+    function qr_refresh() {
+    	randomKey = Math.floor(Math.random()*100000000);
+		$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://localhost:5000/logkey%26key=' + randomKey + '&bgcolor=F5F5F5');
+    }
+
+    // Functions to display various containers according to the preferences set on the App
+    var showContainer = function(value, container){
+    	if(value == "False" || value == "false"){
+	    	$("#"+container+"-container").addClass('closed');
+			var t = setTimeout(function(){$("#"+container+"-container").attr('style', 'display:none;');}, 1600);
+	    }else if(value == "True" || value == "true"){
+			$("#"+container+"-container").attr('style', '');
+	    	var t = setTimeout(function(){$("#"+container+"-container").removeClass('closed');}, 200);
+	    }
+	}
+
+	// Check if there are preferences stored in a session. If there are, aply them on the containers
+	showContainer("{{ session.weather }}", "weather")
+	showContainer("{{ session.profile }}", "profile")
+	showContainer("{{ session.posts }}", "post")
+
+	// If there is a key stored in session, don't display QR-Code-Login
+    if("{{ session.key }}" != ""){
+		$("#qr").css('-webkit-transform', 'scale(0)');
+		setTimeout(function(){$("#qr").css('display', 'none');}, 700)
+		setTimeout(function(){
+			$("#login_text").html("Logged In as {{ session.username }}");
+			$("#login_text").addClass("rel_pos");
+		},710);
+		setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
+		keyChecked = true;
+    }
+    
+    // Logout automatically after 1 Minute <-- Temporary! This function will 
+    // be replaced with an actual logout-function
+	setInterval(function(){
+		$.get("/dropsession", function(response){
+			if(response != "false"){
+				$("#qr").css('display', 'block');
+				setTimeout(function(){$("#qr").css('-webkit-transform', 'scale(1)');}, 100);
+				$("#login_text").css('width', '210px');
+				$("#login_text").removeClass("rel_pos");
+				$("#login_text").html("Log In");
+				showContainer("true", "weather")
+				showContainer("true", "profile")
+				showContainer("true", "post")
+				keyChecked = false;
+			}
+		});
+	},60000);
+
+	// Check if the user has logged in himself by requesting an answer from the server
+	// If the answer is not "false" proceed to hide the QR-Code login and display the container
+	// according to the preferences the user set in the app
+    function checkKey() {
+    	if(!keyChecked){
+	    	$.get("/getkey&key=" + randomKey, function(response){
+				if(response != "false"){
+					$("#qr").css('-webkit-transform', 'scale(0)');
+					setTimeout(function(){$("#qr").css('display', 'none');}, 700)
+					setTimeout(function(){
+						$("#login_text").html("Logged In as " + response.username);
+						$("#login_text").addClass("rel_pos");
+					},710);
+					setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
+					showContainer(response.weather.toString(), "weather")
+					showContainer(response.profile.toString(), "profile")
+					showContainer(response.posts.toString(), "post")
+					keyChecked = true;
+					qr_refresh();
+				}
+			});
+    	}
+    }
+
+    // Check the keys every 3 seconds and refresh the QR-Code every 5 minutes
+	var timeInterval = setInterval(function(){qr_refresh()}, 300000);
+	var keyInterval = setInterval(function(){checkKey()}, 3000);
+
+	// Display current time
 	function time(){
 		var now = moment().format("HH:mm");
 		document.getElementById("time").innerHTML = now;
 	}
-
 	var timeInterval = setInterval(function(){time()}, 500);
 
-	var weatherApiKey = "{{ weatherApiKey }}";
+	
+
+	// Google part starts here -------------------------------------
+	// Set Google-API related Informations
+	var clientId = "{{ googleClientId }}";
+    var apiKey = "{{ googleApiKey }}";
+    var scopes = ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'];
+    var accessToken = 'noToken';
+    // TODO: Set pagetoke so next pages can be accessed
+    var page_token = "x";
+
+    function init(){  
+   		// Set up google library
+	    gapi.client.setApiKey(apiKey);
+	    var t = setTimeout(checkAuth(),1800000);
+	}
+
+	function checkAuth() {
+		// Check if user is already authorized
+		// Handle response with handleAuthResult()
+	  	gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true, cookie_policy: 'single_host_origin'}, handleAuthResult);
+	}
+
+	function handleAuthResult(authResult) {
+	  if (authResult && !authResult.error) {
+	  	// If there is no error, set accesstoken and fetch the profile
+	  	accessToken = gapi.auth.getToken().access_token;
+	  	profile.url = "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken;
+	  	profile.fetch({
+			success: function(){
+				console.log(profile);
+				weatherView = new ProfileView({model: profile});
+			}
+		});
+		// 107045876535773972576
+	  	posts.url = "https://www.googleapis.com/plus/v1/people/me/activities/public?pageToken=" + page_token + "&maxResults=2&access_token=" + accessToken;
+		posts.fetch({
+			success: function(){
+				$("#google-posts-container").html("");
+				console.log(posts);
+				googlePostsView = new PostsView({model: posts});
+			}
+		});
+	  } else {
+	  	// If authorization failed, start authorization with immediate set to false
+	    checkAuthClick();
+	  }
+	}
+
+	function checkAuthClick() {
+		// Start authorization with immediate set to false
+		gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false, cookie_policy: 'single_host_origin'}, handleAuthResult);
+	}
+
+	function LogoutConnection(){
+		gapi.auth.signOut();
+		var token = gapi.auth.getToken();
+		disconnectUser(token.access_token);
+	}
+
+	function disconnectUser(access_token) {
+		// Revoke accesstoken
+		var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' + access_token;
+
+		$.ajax({
+			type: 'GET',
+			url: revokeUrl,
+			async: true,
+			contentType: "application/json",
+			dataType: 'jsonp',
+		});
+	}
+
+	// Google part end
 
 </script>
 <script src="{{ static('js/b-bone.js') }}"></script>
 
 <!-- Templates -->
+
 <script type="text/template" id="weather_template">
-	<div class="weather-box">
+	<div class="weather-box" id="weather-box">
 		<% var phase = moon_phase.phaseofMoon %>
 		<% phase = phase.replace(/\s/g, ''); %>
 		<% phase = phase.toLowerCase(); %>
 		<div class="weather-header">
-			<span class="weather-header-span"><%= current_observation.temp_c %>°C
-			<img src="/static/img/weather/<%= current_observation.iconurl %>" width="150" /></span>
+			<%= current_observation.temp_c %>°C
+			<img src="/static/img/weather/<%= current_observation.iconurl %>" width="150" />
 		</div>
 		<div class="weather-content">
 		<b class="weatherText"><%= current_observation.display_location.full %></b> <small><%= current_observation.weather %></small></br>
@@ -65,6 +230,49 @@
 				<span><img src="/static/img/weather/astro/umbrella.png" height="20"/></span>
 			<% } %>
 		</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="profile_template">
+	<div class="profile-box">
+		<img class="rnd" src="<%= image.url %>&size=200" width="100">
+		<span class="center"><%= displayName %>
+		<% if(emails[0].value){ %>
+			<span class="email"><%= emails[0].value %></span>
+		<% } %>
+		</span
+	</div>
+</script>
+<script type="text/template" id="google_post_template">
+	<div class="google-post-box">
+		<div class="panel panel-orange">
+		  <div class="panel-heading">
+		  	<img src="<%= actor.image.url %>"style="margin-left:10px;margin-right:10px;" width="40"></img><strong><%- actor.displayName %></strong>
+		  </div>
+		  <div class="panel-body">
+		    <%= object.content %>
+		    <% _.each(object.attachments, function(item, key, list){ %>
+			<% if(item.objectType == "article"){ %>
+				<!-- Article Attachment -->
+				<div class="google_article">
+					<a href="<%= item.url %>">
+					<% if(item.image){ %>
+						<img class="google_article_image" src="<%= item.image.url %>" width="210"></img>
+					<% } %></a>
+					<%= item.content %>
+				</div>
+			<% } %>
+			<% }); %>
+		  </div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="no_posts_template">
+	<div class="google-post-box">
+		<div class="panel panel-orange">
+			<div class="panel-body" style="border-top: 10px solid #e67e22;">
+				No Posts...
+			</div>
 		</div>
 	</div>
 </script>

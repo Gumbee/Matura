@@ -1,4 +1,4 @@
-from flask import Flask, url_for
+from flask import Flask, url_for, session
 from flask.ext.sqlalchemy import SQLAlchemy
 import os
 

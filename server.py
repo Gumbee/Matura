@@ -1,6 +1,5 @@
 from app import app
 from app import db
-from app.models import User
 from flask.ext.sqlalchemy import SQLAlchemy
 from OpenSSL import SSL
 

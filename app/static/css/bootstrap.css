@@ -5691,6 +5691,13 @@ a.list-group-item-danger.active:focus {
 .panel-default > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #ddd;
 }
+.panel-orange > .panel-heading {
+  color: #222;
+  background-color: #e67e22;
+}
+.panel-orange > .panel-body {
+  color: #222;
+}
 .panel-primary {
   border-color: #337ab7;
 }
@@ -6720,76 +6727,3 @@ button.close {
   }
 }
 /*# sourceMappingURL=bootstrap.css.map */
-
-.buffer-top-5 {
-  margin-top: 5px;
-}
-.buffer-bottom-5 {
-  margin-bottom: 5px;
-}
-.buffer-left-5 {
-  margin-left: 5px;
-}
-.buffer-right-5 {
-  margin-right: 5px;
-}
-.buffer-top-10 {
-  margin-top: 10px;
-}
-.buffer-bottom-10 {
-  margin-bottom: 10px;
-}
-.buffer-left-10 {
-  margin-left: 10px;
-}
-.buffer-right-10 {
-  margin-right: 10px;
-}
-.buffer-top-20 {
-  margin-top: 20px;
-}
-.buffer-bottom-20 {
-  margin-bottom: 20px;
-}
-.buffer-left-20 {
-  margin-left: 20px;
-}
-.buffer-right-20 {
-  margin-right: 20px;
-}
-.buffer-top-30 {
-  margin-top: 30px;
-}
-.buffer-bottom-30 {
-  margin-bottom: 30px;
-}
-.buffer-left-30 {
-  margin-left: 30px;
-}
-.buffer-right-30 {
-  margin-right: 30px;
-}
-.buffer-top-40 {
-  margin-top: 40px;
-}
-.buffer-bottom-40 {
-  margin-bottom: 40px;
-}
-.buffer-left-40 {
-  margin-left: 40px;
-}
-.buffer-right-40 {
-  margin-right: 40px;
-}
-.buffer-top-50 {
-  margin-top: 50px;
-}
-.buffer-bottom-50 {
-  margin-bottom: 50px;
-}
-.buffer-left-50 {
-  margin-left: 50px;
-}
-.buffer-right-50 {
-  margin-right: 50px;
-}
