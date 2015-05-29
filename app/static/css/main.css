@@ -113,7 +113,7 @@ body {
 	font-weight: 300;
 }
 .weather-header img {
-	vertical-align: text-top;
+	vertical-align: text-bottom;
 	margin-left: 20px;
 }
 .weather-content {
@@ -207,6 +207,13 @@ body {
 }
 .google-posts-container .google_article {
 	margin-top: 10px;
+}
+.google-post-box .panel-body {
+	background-color: #F5F5F5;
+}
+.google-post-box .panel {
+	-webkit-box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
+          	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
 }
 .qr-code-container {
 	transition:All 2s ease;

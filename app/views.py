@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, jsonify
+from flask import Flask, render_template, session, jsonify, request
 from app import app 
 from app.models import *
 from ghost import Ghost 
@@ -48,32 +48,45 @@ def gapi(query):
 	txt = txt.replace('<button', '<button class="btn btn-primary" disabled')
 	return render_template('api.html', apicode=unicode(txt), query=query)
 
-@app.route('/logkey&key=<key>&name=<name>&email=<email>&w=<weather>&pr=<profile>&po=<posts>')
-def logkey(key, name, email, weather, profile, posts):
+@app.route('/logkey', methods=['POST'])
+def logkey():
+	print("Reach0")
+	key = request.form["key"]
+	name = request.form["name"]
+	email = request.form["email"]
+	weather = request.form["weather"]
+	profile = request.form["profile"]
+	posts = request.form["posts"]
 	# Get key and user from our database
 	check = Key.query.filter_by(keycode=key).first()
 	user = User.query.filter_by(email=email).first()
-	# Set query results as python variables
+	# Set results as python variables
+	print("Reach1");
 	if(weather == "true"):
 		weather = True
-	else:
+	elif(weather == "false"):
 		weather = False
 	if(profile == "true"):
 		profile = True
-	else:
+	elif(profile == "false"):
 		profile = False
 	if(posts == "true"):
 		posts = True
-	else:
+	elif(posts == "false"):
 		posts = False
+	print("Reach2");
 	# Declare a new user
 	newuser = User(name, email, weather, profile, posts)
+	print("Reach3");
 	if (user is None):
+		print("Reach4");
 		# If the user is nonexistent in our databse, add him
 		db.session.add(newuser)
 		db.session.commit()
+		print("Reach5");
 	else:
 		# Check if any changes were made to our user and update them
+		print("Reach6");
 		if (user.email != email):
 			user.email = email
 			db.session.commit()
@@ -89,13 +102,17 @@ def logkey(key, name, email, weather, profile, posts):
 		if (user.showPosts != posts):
 			user.showPosts = posts
 			db.session.commit()
+		print("Reach7");
 	if (check is None):
 		# If the key is nonexistent in our database, add it
+		print("Reach8");
 		keycode = Key(key, email)
 		db.session.add(keycode)
 		db.session.commit()
+		print("Reach9");
 		return '<body style="background-color:#2c3e50;"><span style="color:#2ecc71;font-size:40px;text-transform: uppercase;font-family: Sans-serif;">Success!</span></body>'
 	else:
+		print("Reach10");
 		return '<body style="background-color:#2c3e50;"><span style="color:#e74c3c;font-size:30px;text-transform: uppercase;font-family: Sans-serif;">Key already in use!</span></body>'
 
 
@@ -134,11 +151,23 @@ def dropsession():
 	return "Dropped"
 
 # TEMPORARY SITE - ONLY FOR DEBUGGING!
-@app.route('/postsite')
+@app.route('/postsite', methods=['GET', 'POST'])
 def postsite():
-	newuser = User("name", "email", True, True, True)
-	db.session.add(newuser)
-	db.session.commit()
-	return "Yay"
+	usr = User.query.filter_by(username="name").first()
+	if (usr is None):
+		newuser = User("name", "email@e.ma", True, True, True)
+		db.session.add(newuser)
+		db.session.commit()
+		return "drem"
+	if (request.method == 'POST'):
+		rer = request.form["single"]
+		newuser = User(rer, rer, True, True, True)
+		db.session.add(newuser)
+		db.session.commit()
+		print(rer)
+		return rer
+	else:
+		return "Yay"
+
 
 app.secret_key = secretkey

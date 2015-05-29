@@ -5,8 +5,8 @@ import datetime
 # User table
 class User(db.Model):
     __tablename__ = 'User'
-    id = db.Column('id', db.Integer, primary_key=True, autoincrement=True, unique=True)
-    email = db.Column('email', db.String(80), nullable=False, unique=True)
+    id = db.Column('id', db.Integer, autoincrement=True, unique=True)
+    email = db.Column('email', db.String(80), primary_key=True, nullable=False, unique=True)
     username = db.Column('username', db.String(50), nullable=False, unique=True)
     showWeather = db.Column('showWeather', db.Boolean)
     showProfile = db.Column('showProfile', db.Boolean)

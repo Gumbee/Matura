@@ -23,7 +23,7 @@
 
 		</div>
 		<div class="qr-code-container buffer-top-20" id="login-container">
-			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://localhost:5000/logkey%26key=asdasd&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
+			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://127.0.0.1:5000/logkey%26key=asdasd&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
 		</div>
 	</div>
 </div>
@@ -38,11 +38,11 @@
 	var keyChecked = false;
 
 	// Set QR-Code to localhost:5000/logkey%key=randomKey
-	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://localhost:5000/logkey%26key=' + randomKey + '&bgcolor=F5F5F5');
+	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
 	// Refresh randomKey and QR-Code
     function qr_refresh() {
     	randomKey = Math.floor(Math.random()*100000000);
-		$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://localhost:5000/logkey%26key=' + randomKey + '&bgcolor=F5F5F5');
+		$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
     }
 
     // Functions to display various containers according to the preferences set on the App
