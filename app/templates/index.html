@@ -15,7 +15,10 @@
 		<div class="profile-container buffer-top-20" id="profile-container">
 
 		</div>
-		<div class="google-container buffer-top-20" id="informtaion-container" style="display:none;">
+		<div class="google-calendar-container buffer-top-20" id="calendar-container">
+
+		</div>
+		<div class="google-container buffer-top-20" id="information-container" style="display:none;">
 			<div class="google-box" id="google-box">
 			</div>
 		</div>
@@ -23,7 +26,7 @@
 
 		</div>
 		<div class="qr-code-container buffer-top-20" id="login-container">
-			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://127.0.0.1:5000/logkey%26key=asdasd&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
+			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=1234567890&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
 		</div>
 	</div>
 </div>
@@ -34,14 +37,26 @@
 <script src="{{ static('js/speech.js') }}"></script>
 <script>
 	var weatherApiKey = "{{ weatherApiKey }}";
-	var randomKey = Math.floor(Math.random()*100000000);
+
+    function randomString(length){
+    	var text = "";
+	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	    for( var i=0; i < length; i++ ){
+	        text += possible.charAt(Math.floor(Math.random() * possible.length));
+	    }
+	    return text;
+    }
+	
+	var randomKey = randomString(Math.random() * (40 - 30) + 30);
 	var keyChecked = false;
 
-	// Set QR-Code to localhost:5000/logkey%key=randomKey
+	var CalendarCount = 2;
+
+	// Set QR-Code
 	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
 	// Refresh randomKey and QR-Code
     function qr_refresh() {
-    	randomKey = Math.floor(Math.random()*100000000);
+    	randomKey = randomString(Math.random() * (40 - 30) + 30);
 		$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
     }
 
@@ -60,6 +75,10 @@
 	showContainer("{{ session.weather }}", "weather")
 	showContainer("{{ session.profile }}", "profile")
 	showContainer("{{ session.posts }}", "post")
+	showContainer("{{ session.calendar }}", "calendar")
+	if("{{ session.calendarCount }}" != ""){
+		CalendarCount = "{{ session.calendarCount }}";
+	}
 
 	// If there is a key stored in session, don't display QR-Code-Login
     if("{{ session.key }}" != ""){
@@ -75,7 +94,7 @@
     
     // Logout automatically after 1 Minute <-- Temporary! This function will 
     // be replaced with an actual logout-function
-	setInterval(function(){
+    var logout = function(){
 		$.get("/dropsession", function(response){
 			if(response != "false"){
 				$("#qr").css('display', 'block');
@@ -86,10 +105,13 @@
 				showContainer("true", "weather")
 				showContainer("true", "profile")
 				showContainer("true", "post")
+				showContainer("true", "calendar")
+				CalendarCount = 2;
+				getCalendarEvents();
 				keyChecked = false;
 			}
 		});
-	},60000);
+	}
 
 	// Check if the user has logged in himself by requesting an answer from the server
 	// If the answer is not "false" proceed to hide the QR-Code login and display the container
@@ -99,7 +121,7 @@
 	    	$.get("/getkey&key=" + randomKey, function(response){
 				if(response != "false"){
 					$("#qr").css('-webkit-transform', 'scale(0)');
-					setTimeout(function(){$("#qr").css('display', 'none');}, 700)
+					setTimeout(function(){$("#qr").css('display', 'none');}, 700);
 					setTimeout(function(){
 						$("#login_text").html("Logged In as " + response.username);
 						$("#login_text").addClass("rel_pos");
@@ -108,6 +130,9 @@
 					showContainer(response.weather.toString(), "weather")
 					showContainer(response.profile.toString(), "profile")
 					showContainer(response.posts.toString(), "post")
+					showContainer(response.calendar.toString(), "calendar")
+					CalendarCount = response.calendarCount.toString();
+					getCalendarEvents();
 					keyChecked = true;
 					qr_refresh();
 				}
@@ -132,7 +157,7 @@
 	// Set Google-API related Informations
 	var clientId = "{{ googleClientId }}";
     var apiKey = "{{ googleApiKey }}";
-    var scopes = ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'];
+    var scopes = ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/calendar'];
     var accessToken = 'noToken';
     // TODO: Set pagetoke so next pages can be accessed
     var page_token = "x";
@@ -153,22 +178,10 @@
 	  if (authResult && !authResult.error) {
 	  	// If there is no error, set accesstoken and fetch the profile
 	  	accessToken = gapi.auth.getToken().access_token;
-	  	profile.url = "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken;
-	  	profile.fetch({
-			success: function(){
-				console.log(profile);
-				weatherView = new ProfileView({model: profile});
-			}
-		});
-		// 107045876535773972576
-	  	posts.url = "https://www.googleapis.com/plus/v1/people/me/activities/public?pageToken=" + page_token + "&maxResults=2&access_token=" + accessToken;
-		posts.fetch({
-			success: function(){
-				$("#google-posts-container").html("");
-				console.log(posts);
-				googlePostsView = new PostsView({model: posts});
-			}
-		});
+	  	getProfile();
+		getPosts();
+		getCalendarEvents();
+		
 	  } else {
 	  	// If authorization failed, start authorization with immediate set to false
 	    checkAuthClick();
@@ -224,7 +237,7 @@
 			<span><img src="/static/img/weather/astro/sunrise.png" height="25"/><%= moon_phase.sunrise.hour %>:<%= moon_phase.sunrise.minute %></span>
 			<span><img src="/static/img/weather/astro/sunset.png" height="25"/><%= moon_phase.sunset.hour %>:<%= moon_phase.sunset.minute %></span>
 			<span><img src="/static/img/weather/astro/<%= phase %>.png" height="25"/></span>
-			<% if((current_observation.icon == "sunny" && current_observation.temp_c > 15 && current_observation.state != 'night') || (current_observation.icon == "clear" && current_observation.temp_c > 15)){ %>
+			<% if((current_observation.icon == "sunny" && current_observation.temp_c > 15 && current_observation.state != 'night') || (current_observation.icon == "clear" && current_observation.temp_c > 15 && current_observation.state != 'night')){ %>
 				<span><img src="/static/img/weather/astro/shades.png" height="15"/></span>
 			<% }else if(current_observation.icon == "chancestorms" || current_observation.icon == "chancerain" || current_observation.icon == "chancesleet" || current_observation.icon == "tstorms" || current_observation.icon == "sleet" || current_observation.icon == "rain"){ %>
 				<span><img src="/static/img/weather/astro/umbrella.png" height="20"/></span>
@@ -273,6 +286,34 @@
 			<div class="panel-body" style="border-top: 10px solid #e67e22;">
 				No Posts...
 			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="google_calendar_template">
+	<div class="google-calendar-box">
+		<div class="event">
+		  	<h1 style="margin-bottom:5px;margin-top:5px;"><%= summary %></h1>
+			<% var startTime = moment(start.dateTime).format("DD-MM-YYYY, h:mma"); %>
+			<% var endTime = moment(end.dateTime).format("DD-MM-YYYY, h:mma"); %>
+			<% var day = moment(start.dateTime).format("dddd"); %>
+			<% var difference = moment(endTime).diff(startTime); %>
+			<% var duration = moment.duration(difference); %>
+			<% var differencenow = moment(start.dateTime).diff(moment()); %>
+			<% var durationnow = moment.duration(differencenow); %>
+			<% 
+			if(durationnow.asYears() >= 1){ 
+				day = moment(start.dateTime).format("DD MMMM YYYY");
+			}else if(durationnow.asDays() >= 7){ 
+				day = moment(start.dateTime).format("DD MMMM");
+			}
+			%>
+			<% if(duration.asHours() < 24){ %>
+				<% var startTime = moment(start.dateTime).format("h:mma"); %>
+				<% var endTime = moment(end.dateTime).format("h:mma"); %>
+	  			<div class="eventTime"><%= startTime %> - <%= endTime %>, <%= day %></div>
+			<% }else{ %>
+	  			<div class="eventTime"><%= startTime %> - <%= endTime %></div>
+			<% } %>
 		</div>
 	</div>
 </script>

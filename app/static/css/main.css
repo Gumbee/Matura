@@ -49,11 +49,13 @@ body {
 
 /* right side design */
 .right-side {
-	min-width: 390px;
+	color: #333;
 	max-width: 410px;
+	min-width: 390px;
+	padding-bottom: 20px;
 	position: absolute;
-	top: 0px;
 	right: 10px;
+	top: 0px;
 	/*background-color: #ccc;*/
 }
 .google-container {
@@ -94,34 +96,34 @@ body {
 	width: 405px;
 }
 .weather-box {
-	font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	background: #F5F5F5;
 	border-left: 10px solid #e67e22;
 	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
 	color: #000;
 	float: right;
+	font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	margin-left: auto;
 	margin-right: auto;
-	width: 100%;
-	padding: 10px 20px 20px 20px;
 	overflow: hidden;
+	padding: 10px 20px 20px 20px;
+	width: 100%;
 }
 .weather-header {
-	position: relative;
 	font-size: 65px;
-	line-height: 68px;
 	font-weight: 300;
+	line-height: 68px;
+	position: relative;
 }
 .weather-header img {
-	vertical-align: text-bottom;
 	margin-left: 20px;
+	vertical-align: text-bottom;
 }
 .weather-content {
-	display: inline-block;
-	text-align: justify;
-	padding-top: 5px;
-	margin-top: 5px;
 	border-top: 1px solid #0C4D70;
+	display: inline-block;
+	margin-top: 5px;
+	padding-top: 5px;
+	text-align: justify;
 	width: 100%;
 }
 .vr {
@@ -168,12 +170,12 @@ body {
 	border-right: 10px solid #e67e22;
 	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
 	color: #000;
-	margin-left: auto;
-	margin-right: auto;
-	padding: 20px;
-	overflow: hidden;
 	font-size: 24px;
 	line-height: 20px;
+	padding: 20px;
+	margin-left: auto;
+	margin-right: auto;
+	overflow: hidden;
 	position: relative;
 }
 .profile-box img {
@@ -215,6 +217,43 @@ body {
 	-webkit-box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
           	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
 }
+.google-calendar-container {
+	transition:All 2s ease;
+	-webkit-transition:All 2s ease;
+	-moz-transition:All 2s ease;
+	-o-transition:All 2s ease;
+	transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-webkit-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-moz-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-o-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-ms-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	background: #F5F5F5; 
+	border-top: 10px solid #e67e22;
+	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
+	color: #000;
+	font-size: 24px;
+	line-height: 20px;
+	margin-left: auto;
+	margin-right: auto;
+	overflow: hidden;
+	position: relative;
+}
+.google-calendar-container .event {
+	padding: 10px 20px;
+	margin-bottom: 0px;
+	border-bottom: 2px solid #ddd;
+}
+.google-calendar-container .eventDay {
+	/*color: #777;*/
+	/*font-weight: 400;*/
+	font-size: 24px;
+}
+.google-calendar-container .eventTime {
+	color: #999;
+	font-weight: 400;
+	font-size: 22px;
+	padding-bottom: 20px;
+}
 .qr-code-container {
 	transition:All 2s ease;
 	-webkit-transition:All 2s ease;
@@ -229,21 +268,21 @@ body {
 	border-right: 10px solid #e67e22;
 	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
 	color: #000;
-	margin-left: auto;
-	margin-right: auto;
-	padding: 10px;
-	overflow: hidden;
 	font-size: 34px;
 	line-height: 20px;
-	position: relative;
-	text-transform: uppercase;
-	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
 	min-height: 60px;
+	overflow: hidden;
+	padding: 10px;
+	position: relative;
+	text-align: center;
+	text-transform: uppercase;
 }
 .qr-code-container img {
-	vertical-align: middle;
-	margin-right: 10px;
 	float: left;
+	margin-right: 10px;
+	vertical-align: middle;
 }
 .qr-code-container .center {
 	right: 10px;
@@ -268,11 +307,11 @@ body {
 }
 
 .closed {
-	transform: scale(0) skew(0deg) translate(0px);
-	-webkit-transform: scale(0) skew(0deg) translate(0px);
-	-moz-transform: scale(0) skew(0deg) translate(0px);
-	-o-transform: scale(0) skew(0deg) translate(0px);
-	-ms-transform: scale(0) skew(0deg) translate(0px);
+	transform: scale(0) skew(0deg) translate(0px) rotateX(95deg);
+	-webkit-transform: scale(0) skew(0deg) translate(0px) rotateX(95deg);
+	-moz-transform: scale(0) skew(0deg) translate(0px) rotateX(95deg);
+	-o-transform: scale(0) skew(0deg) translate(0px) rotateX(95deg);
+	-ms-transform: scale(0) skew(0deg) translate(0px) rotateX(95deg);
 	opacity: 0;
 }
 .rnd {
@@ -365,10 +404,10 @@ iframe[src^="https://apis.google.com"] {
 
 /* Temporary Design (Will be deleted) */
 #speech-show {
-	margin-top: 40px;
-	margin-left: 20px;
-	font-size: 45px;
 	color: #495E73;
+	font-size: 45px;
+	margin-left: 20px;
+	margin-top: 40px;
 	text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.84);
 	text-transform: uppercase;
 }
