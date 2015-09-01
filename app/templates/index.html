@@ -12,9 +12,6 @@
 		<div class="weather-container buffer-top-20" id="weather-container">
 
 		</div>
-		<div class="profile-container buffer-top-20" id="profile-container">
-
-		</div>
 		<div class="google-calendar-container buffer-top-20" id="calendar-container">
 
 		</div>
@@ -22,12 +19,12 @@
 			<div class="google-box" id="google-box">
 			</div>
 		</div>
-		<div class="google-posts-container buffer-top-20" id="post-container">
-
-		</div>
 		<div class="qr-code-container buffer-top-20" id="login-container">
 			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=1234567890&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
 		</div>
+		<!-- <div class="profile-container buffer-top-20" id="profile-container"><div>
+		<div class="google-calendar-container buffer-top-20" id="calendar-container"></div>
+		<div class="google-posts-container buffer-top-20" id="post-container"></div> -->
 	</div>
 </div>
 <audio id="tts">
@@ -36,7 +33,12 @@
 <script src="{{ static('js/vendors/annyang.js') }}"></script>
 <script src="{{ static('js/speech.js') }}"></script>
 <script>
+
+	"use strict";
 	var weatherApiKey = "{{ weatherApiKey }}";
+	var getCalendarEvents = function(){
+		
+	}
 
     function randomString(length){
     	var text = "";
@@ -49,8 +51,6 @@
 	
 	var randomKey = randomString(Math.random() * (40 - 30) + 30);
 	var keyChecked = false;
-
-	var CalendarCount = 2;
 
 	// Set QR-Code
 	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
@@ -72,13 +72,7 @@
 	}
 
 	// Check if there are preferences stored in a session. If there are, aply them on the containers
-	showContainer("{{ session.weather }}", "weather")
-	showContainer("{{ session.profile }}", "profile")
-	showContainer("{{ session.posts }}", "post")
-	showContainer("{{ session.calendar }}", "calendar")
-	if("{{ session.calendarCount }}" != ""){
-		CalendarCount = "{{ session.calendarCount }}";
-	}
+	showContainer("{{ session.weather }}", "weather");
 
 	// If there is a key stored in session, don't display QR-Code-Login
     if("{{ session.key }}" != ""){
@@ -92,8 +86,6 @@
 		keyChecked = true;
     }
     
-    // Logout automatically after 1 Minute <-- Temporary! This function will 
-    // be replaced with an actual logout-function
     var logout = function(){
 		$.get("/dropsession", function(response){
 			if(response != "false"){
@@ -103,14 +95,32 @@
 				$("#login_text").removeClass("rel_pos");
 				$("#login_text").html("Log In");
 				showContainer("true", "weather")
-				showContainer("true", "profile")
-				showContainer("true", "post")
-				showContainer("true", "calendar")
-				CalendarCount = 2;
-				getCalendarEvents();
 				keyChecked = false;
 			}
 		});
+
+
+	}
+
+
+	var requestSite = function(site, type, parameters){
+		if(type == 'POST'){
+			if(typeof parameters === 'undefined'){
+				$.post(site, function(response){
+			        console.log(response);
+				});
+			}else{
+				$.post(site, parameters, function(response){
+			        console.log(response);
+				});
+			}
+		}else{
+			$.get(site, function(response){
+				if(response != "false"){
+					console.log(response);
+				}
+			});
+		}
 	}
 
 	// Check if the user has logged in himself by requesting an answer from the server
@@ -128,20 +138,16 @@
 					},710);
 					setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
 					showContainer(response.weather.toString(), "weather")
-					showContainer(response.profile.toString(), "profile")
-					showContainer(response.posts.toString(), "post")
-					showContainer(response.calendar.toString(), "calendar")
-					CalendarCount = response.calendarCount.toString();
-					getCalendarEvents();
 					keyChecked = true;
 					qr_refresh();
+					getCalendarEvents();
 				}
 			});
     	}
     }
 
     // Check the keys every 3 seconds and refresh the QR-Code every 5 minutes
-	var timeInterval = setInterval(function(){qr_refresh()}, 300000);
+	var timeInterval = setInterval(function(){qr_refresh()}, 60000);
 	var keyInterval = setInterval(function(){checkKey()}, 3000);
 
 	// Display current time
@@ -150,69 +156,6 @@
 		document.getElementById("time").innerHTML = now;
 	}
 	var timeInterval = setInterval(function(){time()}, 500);
-
-	
-
-	// Google part starts here -------------------------------------
-	// Set Google-API related Informations
-	var clientId = "{{ googleClientId }}";
-    var apiKey = "{{ googleApiKey }}";
-    var scopes = ['https://www.googleapis.com/auth/plus.me', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/calendar'];
-    var accessToken = 'noToken';
-    // TODO: Set pagetoke so next pages can be accessed
-    var page_token = "x";
-
-    function init(){  
-   		// Set up google library
-	    gapi.client.setApiKey(apiKey);
-	    var t = setTimeout(checkAuth(),1800000);
-	}
-
-	function checkAuth() {
-		// Check if user is already authorized
-		// Handle response with handleAuthResult()
-	  	gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true, cookie_policy: 'single_host_origin'}, handleAuthResult);
-	}
-
-	function handleAuthResult(authResult) {
-	  if (authResult && !authResult.error) {
-	  	// If there is no error, set accesstoken and fetch the profile
-	  	accessToken = gapi.auth.getToken().access_token;
-	  	getProfile();
-		getPosts();
-		getCalendarEvents();
-		
-	  } else {
-	  	// If authorization failed, start authorization with immediate set to false
-	    checkAuthClick();
-	  }
-	}
-
-	function checkAuthClick() {
-		// Start authorization with immediate set to false
-		gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false, cookie_policy: 'single_host_origin'}, handleAuthResult);
-	}
-
-	function LogoutConnection(){
-		gapi.auth.signOut();
-		var token = gapi.auth.getToken();
-		disconnectUser(token.access_token);
-	}
-
-	function disconnectUser(access_token) {
-		// Revoke accesstoken
-		var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' + access_token;
-
-		$.ajax({
-			type: 'GET',
-			url: revokeUrl,
-			async: true,
-			contentType: "application/json",
-			dataType: 'jsonp',
-		});
-	}
-
-	// Google part end
 
 </script>
 <script src="{{ static('js/b-bone.js') }}"></script>
@@ -246,70 +189,27 @@
 		</div>
 	</div>
 </script>
-<script type="text/template" id="profile_template">
-	<div class="profile-box">
-		<img class="rnd" src="<%= image.url %>&size=200" width="100">
-		<span class="center"><%= displayName %>
-		<% if(emails[0].value){ %>
-			<span class="email"><%= emails[0].value %></span>
-		<% } %>
-		</span
-	</div>
-</script>
-<script type="text/template" id="google_post_template">
-	<div class="google-post-box">
-		<div class="panel panel-orange">
-		  <div class="panel-heading">
-		  	<img src="<%= actor.image.url %>"style="margin-left:10px;margin-right:10px;" width="40"></img><strong><%- actor.displayName %></strong>
-		  </div>
-		  <div class="panel-body">
-		    <%= object.content %>
-		    <% _.each(object.attachments, function(item, key, list){ %>
-			<% if(item.objectType == "article"){ %>
-				<!-- Article Attachment -->
-				<div class="google_article">
-					<a href="<%= item.url %>">
-					<% if(item.image){ %>
-						<img class="google_article_image" src="<%= item.image.url %>" width="210"></img>
-					<% } %></a>
-					<%= item.content %>
-				</div>
-			<% } %>
-			<% }); %>
-		  </div>
-		</div>
-	</div>
-</script>
-<script type="text/template" id="no_posts_template">
-	<div class="google-post-box">
-		<div class="panel panel-orange">
-			<div class="panel-body" style="border-top: 10px solid #e67e22;">
-				No Posts...
-			</div>
-		</div>
-	</div>
-</script>
 <script type="text/template" id="google_calendar_template">
 	<div class="google-calendar-box">
 		<div class="event">
-		  	<h1 style="margin-bottom:5px;margin-top:5px;"><%= summary %></h1>
-			<% var startTime = moment(start.dateTime).format("DD-MM-YYYY, h:mma"); %>
-			<% var endTime = moment(end.dateTime).format("DD-MM-YYYY, h:mma"); %>
-			<% var day = moment(start.dateTime).format("dddd"); %>
+		  	<h2 style="margin-bottom:5px;margin-top:5px;"><%= this.model[0] %></h2>
+			<% var startTime = moment(this.model[1]).format("DD-MM-YYYY, h:mma"); %>
+			<% var endTime = moment(this.model[2]).format("DD-MM-YYYY, h:mma"); %>
+			<% var day = moment(this.model[1]).format("dddd"); %>
 			<% var difference = moment(endTime).diff(startTime); %>
 			<% var duration = moment.duration(difference); %>
-			<% var differencenow = moment(start.dateTime).diff(moment()); %>
+			<% var differencenow = moment(this.model[1]).diff(moment()); %>
 			<% var durationnow = moment.duration(differencenow); %>
 			<% 
 			if(durationnow.asYears() >= 1){ 
-				day = moment(start.dateTime).format("DD MMMM YYYY");
+				day = moment(this.model[1]).format("DD MMMM YYYY");
 			}else if(durationnow.asDays() >= 7){ 
-				day = moment(start.dateTime).format("DD MMMM");
+				day = moment(this.model[1]).format("DD MMMM");
 			}
 			%>
 			<% if(duration.asHours() < 24){ %>
-				<% var startTime = moment(start.dateTime).format("h:mma"); %>
-				<% var endTime = moment(end.dateTime).format("h:mma"); %>
+				<% var startTime = moment(this.model[1]).format("h:mma"); %>
+				<% var endTime = moment(this.model[2]).format("h:mma"); %>
 	  			<div class="eventTime"><%= startTime %> - <%= endTime %>, <%= day %></div>
 			<% }else{ %>
 	  			<div class="eventTime"><%= startTime %> - <%= endTime %></div>

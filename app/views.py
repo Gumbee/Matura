@@ -5,13 +5,14 @@ from ghost import Ghost
 from app.config import *
 
 import datetime
+import json
 
 ghost = Ghost()
 
 
 @app.route('/')
 def index():
-	return render_template('index.html', weatherApiKey=weatherApiKey, googleApiKey=googleApiKey, googleClientId=googleClientId)
+	return render_template('index.html', weatherApiKey=weatherApiKey)
 
 @app.route('/csstest')
 def csstest():
@@ -47,7 +48,7 @@ def gapi(query):
 			txt += el.at(i).toOuterXml()
 	# Refer to google
 	txt = txt.replace('src="//', 'src="https://')
-	txt = txt.replace('src="/', 'src="https://google.com/')
+	txt = txt.replace('src="/', 'src="https://www.google.com/')
 	txt = txt.replace('href="/search', 'href="https://google.com/search')
 	txt = txt.replace('<select', '<select class="form-control" disabled')
 	txt = txt.replace('<input', '<input class="form-control" disabled')
@@ -57,37 +58,23 @@ def gapi(query):
 
 @app.route('/logkey', methods=['POST'])
 def logkey():
-	key = request.form["key"]
-	name = request.form["name"]
-	email = request.form["email"]
-	weather = request.form["weather"]
-	profile = request.form["profile"]
-	posts = request.form["posts"]
-	calendar = request.form["calendar"]
-	calendarCount = request.form["calendarCount"]
+	if('key' in request.form):
+		key = request.form["key"]
+	if('name' in request.form):
+		name = request.form["name"]
+	if('email' in request.form):
+		email = request.form["email"]
+	if('weather' in request.form):
+		weather = request.form["weather"]
+	if('events' in request.form):
+		events = request.form["events"]
 	# Get key and user from our database
 	check = Key.query.filter_by(keycode=key).first()
 	user = User.query.filter_by(email=email).first()
 	# Set results as python variables
-	if(weather == "true"):
-		weather = True
-	elif(weather == "false"):
-		weather = False
-	if(profile == "true"):
-		profile = True
-	elif(profile == "false"):
-		profile = False
-	if(posts == "true"):
-		posts = True
-	elif(posts == "false"):
-		posts = False
-	if(calendar == "true"):
-		calendar = True
-	elif(calendar == "false"):
-		calendar = False
-	calendarCount = int(calendarCount)
+	weather = checkType(weather)
 	# Declare a new user
-	newuser = User(name, email, weather, profile, posts, calendar, calendarCount)
+	newuser = User(name, email, weather, events)
 	if (user is None):
 		# If the user is nonexistent in our databse, add him
 		db.session.add(newuser)
@@ -103,17 +90,8 @@ def logkey():
 		if (user.showWeather != weather):
 			user.showWeather = weather
 			db.session.commit()
-		if (user.showProfile != profile):
-			user.showProfile = profile
-			db.session.commit()
-		if (user.showPosts != posts):
-			user.showPosts = posts
-			db.session.commit()
-		if (user.showCalendar != calendar):
-			user.showCalendar = calendar
-			db.session.commit()
-		if (user.calendarCount != calendarCount):
-			user.calendarCount = calendarCount
+		if (user.calendarEvents != events):
+			user.calendarEvents = events
 			db.session.commit()
 	if (check is None):
 		# If the key is nonexistent in our database, add it
@@ -124,6 +102,14 @@ def logkey():
 	else:
 		return '<body style="background-color:#2c3e50;"><span style="color:#e74c3c;font-size:30px;text-transform: uppercase;font-family: Sans-serif;">Key already in use!</span></body>'
 
+
+def checkType(string):
+	if(string == "true"):
+		return True
+	elif(string == "false"):
+		return False
+	else:
+		return None
 
 @app.route('/getkey&key=<key>')
 def getkey(key):
@@ -145,20 +131,54 @@ def getkey(key):
 			return "false"
 		else:
 			# If everything succedes return a json object with the following variables and set the session
-			session['key'] = key;
-			session['username'] = user.username;
-			session['email'] = user.email;
-			session['weather'] = user.showWeather;
-			session['profile'] = user.showProfile;
-			session['posts'] = user.showPosts;
-			session['calendar'] = user.showCalendar;
-			session['calendarCount'] = user.calendarCount;
-			return jsonify(key=key, username=user.username, email=user.email, weather=user.showWeather, profile=user.showProfile, posts=user.showPosts, calendar=user.showCalendar, calendarCount=user.calendarCount)
+			session['key'] = key
+			session['username'] = user.username
+			session['email'] = user.email
+			session['weather'] = user.showWeather
+			return jsonify(key=key, username=user.username, email=user.email, weather=user.showWeather)
 
 @app.route('/dropsession')
 def dropsession():
 	# Drop the session
 	session.clear()
 	return "Dropped"
+
+@app.route('/getCalendar')
+def getCalendar():
+	user = User.query.filter_by(email=session['email']).first()
+	if (user is None):
+		return "false"
+	else:
+		return user.calendarEvents
+
+
+@app.route('/login')	
+def login():
+	ghost.open('https://accounts.google.com/ServiceLogin?sacu=1#identifier')
+	ghost.capture_to("google.png")
+	return "Done"
+
+@app.route('/setcommand', methods=['POST'])
+def setcommand():
+	if('command' in request.form):
+		command = request.form["command"]
+	else:
+		command = "failer"
+	if('sentence' in request.form):
+		sentence = request.form["sentence"]
+	else:
+		sentence = "failersentence"
+	if('userid' in request.form):
+		userid = request.form["userid"]
+	else:
+		userid = 404
+
+	newRelation = CommandRelation(sentence, command, userid)
+	db.session.add(newRelation)
+	db.session.commit()
+
+	user = User.query.filter_by(id = userid)
+
+	return "Set command: " + command + ", with sentence: " + sentence + " for user: " + user.email
 
 app.secret_key = secretkey

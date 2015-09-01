@@ -3,6 +3,8 @@
 //! author  : Tal Ater @TalAter
 //! license : MIT
 //! https://www.TalAter.com/annyang/
+  var commandsToAdd = {};
+  commandsToAdd[length] = 0;
 
 (function (undefined) {
   "use strict";
@@ -60,6 +62,10 @@
     return new RegExp('^' + command + '$', 'i');
   };
 
+  // Gather failed commands to put the into the database
+  // var commandsToAdd = [];
+  // commandsToAdd[length] = 0;
+
   // This method receives an array of callbacks to iterate over, and invokes each of them
   var invokeCallbacks = function(callbacks) {
     callbacks.forEach(function(callback) {
@@ -69,7 +75,7 @@
 
   var initIfNeeded = function() {
     if (!isInitialized()) {
-      root.annyang.init({}, false);
+      root.annyang.init({}, false);  
     }
   };
 
@@ -108,6 +114,9 @@
       } else {
         resetCommands = !!resetCommands;
       }
+
+      commandsToAdd = {};
+      commandsToAdd[length] = 0;
 
       // Abort previous instances of recognition already running
       if (recognition && recognition.abort) {
@@ -173,9 +182,17 @@
 
         invokeCallbacks(callbacks.result);
         var results = event.results[event.resultIndex];
+        var finalLength = results.length;
+        var template = {confidence: 0, transcript: "google pizza"};
+        // TODO: Set appropriate addition of success command
+        // results[results.length] = template;
+        // TODO: Set condition for increment
+        // finalLength++;
         var commandText;
+        
+        var fallbackCommand;
         // go over each of the 5 results and alternative results received (we've set maxAlternatives to 5 above)
-        for (var i = 0; i<results.length; i++) {
+        for (var i = 0; i<finalLength; i++) {
           // the text recognized
           commandText = results[i].transcript.trim();
           if (debugState) {
@@ -185,12 +202,13 @@
           // try and match recognized text to one of the commands on the list
           for (var j = 0, l = commandsList.length; j < l; j++) {
             var result = commandsList[j].command.exec(commandText);
-            console.log("result ==>");
-            console.log(result);
             if (result) {
+              console.log("result ==>");
+              console.log(result);
               var parameters = result.slice(1);
               if (debugState) {
                 root.console.log('command matched: %c'+commandsList[j].originalPhrase, debugStyle);
+                root.console.log('command is: ', result["input"]);
                 if (parameters.length) {
                   root.console.log('with parameters', parameters);
                 }
@@ -198,11 +216,32 @@
               // execute the matched command
               commandsList[j].callback.apply(this, parameters);
               invokeCallbacks(callbacks.resultMatch);
+              fallbackCommand = result.input;
+              //TODO: Commands to Database
+              // Sending commands to database              
+              for(var x=0;x<commandsToAdd[length];x++){
+                var parameters = {sentence: commandsToAdd[x], command: result.input, userid: 1}
+                $.post('/setcommand', parameters, function(response){
+                  console.log(response);
+                });
+              }
+              commandsToAdd = {};
+              commandsToAdd[length] = 0;
               return true;
             }
           }
         }
+        fallbackCommand = null;
         invokeCallbacks(callbacks.resultNoMatch);
+        if(commandsToAdd[length] == undefined || commandsToAdd[length] == null){
+          commandsToAdd = {};
+          commandsToAdd[length] = 0;
+        }
+        for (var i = 0; i<results.length; i++) {
+          commandsToAdd[commandsToAdd.length] = results[i].transcript;
+          commandsToAdd[length] += 1;
+          console.log("TOTAL LENGTH: ", commandsToAdd[length]);
+        }
         return false;
       };
 
@@ -253,6 +292,8 @@
           root.console.log(e.message);
         }
       }
+      commandsToAdd = {};
+      commandsToAdd[length] = 0;
     },
 
     /**

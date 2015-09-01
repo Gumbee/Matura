@@ -1,5 +1,6 @@
-// Models
+"use strict";
 
+// Models
 var Weather = Backbone.Model.extend({
 	url: "https://api.wunderground.com/api/" + weatherApiKey + "/conditions/astronomy/q/autoip.json",
 	parse: function(response){
@@ -10,84 +11,23 @@ var Weather = Backbone.Model.extend({
 	}
 });
 
-var Profile = Backbone.Model.extend({
-	url: "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
-	fetch: function(options){
-		this.url = "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken;
-		return Backbone.Model.prototype.fetch.call(this, options);
-	},
-	parse: function(response){
-		return response;
-	}
-});
-
-var Post = Backbone.Model.extend({
-});
-
-
-var Calendar = Backbone.Model.extend({
-});
-
-var CalendarList = Backbone.Model.extend({
+var CalendarEvent = Backbone.Model.extend({
 });
 
 // Collections
-
-var PostCollection = Backbone.Collection.extend({
-	model: Post,
-	url: "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken + "/activities/public?pageToken=" + page_token + "&maxResults=2&key=" + apiKey,
+var CalendarEventCollection = Backbone.Collection.extend({
+	model: CalendarEvent,
+	url: "/getCalendar",
 	fetch: function(options){
-		this.url = "https://www.googleapis.com/plus/v1/people/me/activities/public?pageToken=" + page_token + "&maxResults=2&access_token=" + accessToken;
-		return Backbone.Collection.prototype.fetch.call(this, options);
-	},
-	parse: function(response){
-		var post_collection = [];
-		page_token = response.nextPageToken;
-		this.url = "https://www.googleapis.com/plus/v1/people/me/activities/public?pageToken=" + page_token + "&maxResults=6&key=" + apiKey;
-		_.each(response.items, function(element){
-			var temp = new Post(element);
-			post_collection.push(temp);
-		});
-		console.log(post_collection);
-		return post_collection;
-	}
-});
-
-var CalendarID;
-var CalendarListCollection = Backbone.Collection.extend({
-	model: CalendarList,
-	url: "https://www.googleapis.com/calendar/v3/users/me/calendarList?fields=items&access_token=" + accessToken,
-	fetch: function(options){
-		this.url = "https://www.googleapis.com/calendar/v3/users/me/calendarList?fields=items&access_token=" + accessToken;
-		return Backbone.Collection.prototype.fetch.call(this, options);
-	},
-	parse: function(response){
-		_.each(response.items, function(element){
-			var temp = new CalendarList(element);
-			if(temp.get("primary")){
-				CalendarID = temp.get("id");
-			}
-		});
-	}
-});
-
-var CalendarCollection = Backbone.Collection.extend({
-	model: Calendar,
-	// TODO: ADD variable maxResults
-	// TODO: Android-App preferences => Calendar settings
-	// TODO: Get individual Calendar
-	url: " https://www.googleapis.com/calendar/v3/calendars/" + CalendarID + "/events?singleEvents=true&orderBy=startTime&timeMin=" + moment().toISOString() + "&timeMin=" + moment().add(7, 'days').toISOString() + "&maxResults=" + CalendarCount + "&access_token=" + accessToken,
-	fetch: function(options){
-		this.url = "https://www.googleapis.com/calendar/v3/calendars/" + CalendarID + "/events?singleEvents=true&orderBy=startTime&timeMin=" + moment().toISOString() + "&timeMin=" + moment().add(7, 'days').toISOString() + "&maxResults=" + CalendarCount + "&access_token=" + accessToken;
+		this.url = "/getCalendar";
 		return Backbone.Collection.prototype.fetch.call(this, options);
 	},
 	parse: function(response){
 		var cal_collection = [];
-		_.each(response.items, function(element){
-			var temp = new Calendar(element);
+		_.each(response, function(element){
+			var temp = new CalendarEvent(element);
 			cal_collection.push(temp);
 		});
-		console.log(cal_collection);
 		return cal_collection;
 	}
 });
@@ -135,54 +75,8 @@ var WeatherView = Backbone.View.extend({
 	}
 });
 
-var ProfileView = Backbone.View.extend({
-	model: Profile,
-	el: ("#profile-container"),
-	tagName: 'div',
-	initialize: function(){
-		_.bindAll(this, 'render');
-		this.template = _.template($("#profile_template").html());
-		this.render();
-	},
-	render: function(){
-		this.$el.html(this.template(this.model.toJSON()));
-	}
-});
-
-var PostView = Backbone.View.extend({
-	model: Post,
-	initialize: function(){
-		this.template = _.template($("#google_post_template").html());
-	},
-	render: function(){
-		this.$el = this.template(this.model);
-		return this;
-	}
-});
-
-var PostsView = Backbone.View.extend({
-	model: PostCollection,
-	el: ("#post-container"),
-	initialize: function(){
-		this.render();
-	},
-	render: function(){
-		var that = this;
-		that.$el.html("");
-		if(this.model.length > 0){
-			_.each(this.model.toJSON(), function(post){
-				that.$el.append(((new PostView({model: post})).render().$el));
-			});
-		}else{
-			this.template = _.template($("#no_posts_template").html());
-			that.$el.append(this.template());
-		}
-		return this;
-	}
-});
-
 var CalendarView = Backbone.View.extend({
-	model: Calendar,
+	model: CalendarEvent,
 	initialize: function(){
 		this.template = _.template($("#google_calendar_template").html());
 	},
@@ -193,7 +87,7 @@ var CalendarView = Backbone.View.extend({
 });
 
 var CalendarsView = Backbone.View.extend({
-	model: CalendarCollection,
+	model: CalendarEventCollection,
 	el: ("#calendar-container"),
 	initialize: function(){
 		this.model.on('change', this.render);
@@ -213,19 +107,12 @@ var CalendarsView = Backbone.View.extend({
 
 // Instances
 
-var profile = new Profile();
-var weather = new Weather();
 
-var posts = new PostCollection();
-var calendars = new CalendarCollection();
-var calendarList= new CalendarListCollection();
+var weather = new Weather();
+var calendarEvents = new CalendarEventCollection();
 
 var weatherView;
-var profileView;
-var googlePostsView;
-
-
-
+var googleCalendarsView;
 
 // Functions
 
@@ -237,38 +124,11 @@ var getWeather = function(){
 	});
 }
 
-var getProfile = function(){
-	profile.fetch({
+getCalendarEvents = function(){
+	calendarEvents.fetch({
 		success: function(){
-			console.log(profile);
-			profileView = new ProfileView({model: profile});
-		}
-	});
-}
-
-var getPosts = function(){
-	// 107045876535773972576
-	posts.fetch({
-		success: function(){
-			$("#google-posts-container").html("");
-			console.log("posts");
-			console.log(posts);
-			googlePostsView = new PostsView({model: posts});
-		}
-	});
-}
-
-var getCalendarEvents = function(){
-	calendarList.fetch({
-		success: function(){
-			calendars.fetch({
-				success: function(){
-					$("#google-calendar-container").html("");
-					console.log("calendars");
-					console.log(calendars);
-					googleCalendarsView = new CalendarsView({model: calendars});
-				}
-			});
+			$("#google-calendar-container").html("");
+			googleCalendarsView = new CalendarsView({model: calendarEvents});
 		}
 	});
 }
@@ -276,8 +136,7 @@ var getCalendarEvents = function(){
 // Executions
 
 getWeather();
-// profile is fetched in index.html -> handleAuthResult()
-// posts are fetched in index.html -> handleAuthResult()
+getCalendarEvents();
 
 // Update Weather every 5 minutes
 var weatherInterval = setInterval(function(){getWeather();}, 300000);

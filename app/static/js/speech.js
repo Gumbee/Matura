@@ -1,40 +1,6 @@
-if (annyang) {
-	var tts = document.getElementById("tts");
-	var tts_source = document.getElementById("tts_source");
-	// Set basic commands
-	var commands = {
-		'(could) (you) (please) google *query': searchGoogle,
-		'(could) (you) (please) close (the) :container (information) (box) (please)': closeContainer,
-		'(could) (you) (please) open (the) :container (information) (box) (please)': openContainer,
-		'(could) (you) (please) scroll down (a) (bit) (please)': scrollDownPage,
-		'(could) (you) (please) scroll up (a) (bit)  (please)': scrollUpPage,
-		'(could) (you) (please) scroll down (some) element(s) (please)': scrollDownElements,
-		'(could) (you) (please) scroll up (some) element(s) (please)': scrollUpElements,
-		'(could) (you) (please) scroll to (the) bottom (of) (the) element(s) (please)': scrollBottomElements,
-		'(could) (you) (please) scroll to (the) top (of) (the) element(s) (please)': scrollTopElements,
-		'log out': logout
-	};
-	// Add commands to annyang
-	annyang.addCommands(commands);
+"use strict";
 
-	annyang.addCallback('result', function () {
-		console.log(event.results[event.results.length-1][0].transcript);
-		$('#speech-show').html(event.results[event.results.length-1][0].transcript);
-		for(var x=1;x<event.results[0].length;x++){
-			if(event.results[event.results.length-1][x].transcript){
-				$('#speech-show').html($('#speech-show').html() + "<br/>" + event.results[event.results.length-1][x].transcript);
-			}
-		}
-	});
-
-	// Start listening
-	annyang.setLanguage("en-US");
-	annyang.debug(true);
-	annyang.start();
-}
-
-var h_scroll = 0;
-
+// Command functions
 var searchGoogle = function(query) {
 	h_scroll = 0;
 	$("#information-container").css('display', 'inline-block');
@@ -97,5 +63,53 @@ var scrollTopElements = function(){
 var logout = function(){
 	logout();
 }
+
+var reminderTo = function(query){
+	//Chrono parse
+}
+
+var reminderAbout = function(query){
+	//Chrono parse
+
+}
+
+// Speech Recognition start
+if (annyang) {
+	var tts = document.getElementById("tts");
+	var tts_source = document.getElementById("tts_source");
+	// Set basic commands
+	var commands = {
+		'(could) (you) (please) google *query': searchGoogle,
+		'(could) (you) (please) close (the) :container (information) (box) (please)': closeContainer,
+		'(could) (you) (please) open (the) :container (information) (box) (please)': openContainer,
+		'(could) (you) (please) scroll down (a) (bit) (please)': scrollDownPage,
+		'(could) (you) (please) scroll up (a) (bit)  (please)': scrollUpPage,
+		'(could) (you) (please) scroll down (some) element(s) (please)': scrollDownElements,
+		'(could) (you) (please) scroll up (some) element(s) (please)': scrollUpElements,
+		'(could) (you) (please) scroll to (the) bottom (of) (the) element(s) (please)': scrollBottomElements,
+		'(could) (you) (please) scroll to (the) top (of) (the) element(s) (please)': scrollTopElements,
+		'(could) (you) (please) remind me to *query': reminderTo,
+		'(could) (you) (please) remind me about *query': reminderAbout,
+		'log out': logout
+	};
+	// Add commands to annyang
+	annyang.addCommands(commands);
+
+	annyang.addCallback('result', function () {
+		$('#speech-show').html(event.results[event.resultIndex][0].transcript);
+		for(var x=1;x<event.results[0].length;x++){
+			if(event.results[event.results.length-1][x].transcript){
+				$('#speech-show').html($('#speech-show').html() + "<br/>" + event.results[event.results.length-1][x].transcript);
+			}
+		}
+	});
+
+	// Start listening
+	annyang.setLanguage("en-US");
+	annyang.debug(true);
+	annyang.start();
+}
+
+var h_scroll = 0;
 
 // searchGoogle("weather bern");
