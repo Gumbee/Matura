@@ -1,5 +1,9 @@
 /* TODO: Join container properties */
 
+html {
+	height: 100%;
+}
+
 body {
 	transition:All 2s ease;
 	-webkit-transition:All 5s ease;
@@ -8,6 +12,7 @@ body {
 	background-color: #000;
 	color: #ecf0f1;
 	padding-bottom: 20px;
+	height: 100%;
 }
 
 
@@ -289,6 +294,52 @@ body {
 .qr-code-container .center {
 	right: 10px;
 	width: 210px;
+}
+.help-container {
+	transition:All 2s ease;
+	-webkit-transition:All 2s ease;
+	-moz-transition:All 2s ease;
+	-o-transition:All 2s ease;
+	transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-webkit-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-moz-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-o-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-ms-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	background: #F5F5F5; 
+	border-right: 10px solid #e67e22;
+	box-shadow: 0px 0px 7px 0px rgba(0,0,0,0.5);
+	color: #000;
+	font-size: 18px;
+	margin-left: auto;
+	margin-right: auto;
+	min-height: 60px;
+	overflow: hidden;
+	padding: 10px;
+	position: relative;
+	text-transform: uppercase;
+}
+.help-container h2{
+	text-align: center;
+	margin-top: 0px;
+}
+
+.conversation-container {
+	transition:All 2s ease;
+	-webkit-transition:All 2s ease;
+	-moz-transition:All 2s ease;
+	-o-transition:All 2s ease;
+	transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-webkit-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-moz-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-o-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	-ms-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	bottom: 150px;
+	font-size: 25px;
+	background-color: #e67e22;
+	padding: 5px 70px 5px 70px;
 }
 
 /* right side design end */

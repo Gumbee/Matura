@@ -9,10 +9,13 @@
 		</div>
 	</div>
 	<div class="right-side">
+		<div class="help-container buffer-top-20" id="help-container" style="display:none;">
+		
+		</div>
 		<div class="weather-container buffer-top-20" id="weather-container">
 
 		</div>
-		<div class="google-calendar-container buffer-top-20" id="calendar-container">
+		<div class="google-calendar-container buffer-top-20" id="calendar-container" style="display:none;">
 
 		</div>
 		<div class="google-container buffer-top-20" id="information-container" style="display:none;">
@@ -22,9 +25,8 @@
 		<div class="qr-code-container buffer-top-20" id="login-container">
 			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=1234567890&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
 		</div>
-		<!-- <div class="profile-container buffer-top-20" id="profile-container"><div>
-		<div class="google-calendar-container buffer-top-20" id="calendar-container"></div>
-		<div class="google-posts-container buffer-top-20" id="post-container"></div> -->
+	</div>
+	<div class="conversation-container" id="conversation-container">
 	</div>
 </div>
 <audio id="tts">
@@ -84,6 +86,8 @@
 		},710);
 		setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
 		keyChecked = true;
+		getCalendarEvents();
+		showContainer("true", "calendar");
     }
     
     var logout = function(){
@@ -94,7 +98,9 @@
 				$("#login_text").css('width', '210px');
 				$("#login_text").removeClass("rel_pos");
 				$("#login_text").html("Log In");
-				showContainer("true", "weather")
+				showContainer("true", "weather");
+				showContainer("false", "calendar");
+				$("#calendar-container").html("");
 				keyChecked = false;
 			}
 		});
@@ -141,6 +147,7 @@
 					keyChecked = true;
 					qr_refresh();
 					getCalendarEvents();
+					showContainer("true", "calendar");
 				}
 			});
     	}

@@ -7,8 +7,7 @@ from app.config import *
 import datetime
 import json
 
-ghost = Ghost()
-
+ghostObject = Ghost()
 
 @app.route('/')
 def index():
@@ -20,41 +19,42 @@ def csstest():
 
 @app.route('/gapi&q=<query>')
 def gapi(query):
-	# Creates headless browser
-	# Opens the web page
-	ghost.open('https://www.google.ch/webhp?hl=de#safe=off&hl=en-CH&q=' + query)
-	ghost.wait_for_page_loaded()
-	# Gets desired element
-	ghost.sleep(1)
-	el = ghost.main_frame.findAllElements(".kp-blk")
-	txt = ""
-	if not (el.count()>0):
-		# If no elements are found, search for another possible element
-		el = ghost.main_frame.findFirstElement(".ct-cs")
-		txt = el.toOuterXml()
-		if (txt == ""):
-			ghost.wait_for_page_loaded()
-			el = ghost.main_frame.findFirstElement(".obcontainer")
-			ghost.sleep(1)
-			txt = el.toOuterXml()
-	else:
-		# Opens 'show more infos' buttons if available
-		# ghost.sleep is needed to give it time to open the button
-		ghost.evaluate("""if(document.getElementsByClassName('exp-txt _ubf vk_arc')[0]){document.getElementsByClassName('exp-txt _ubf vk_arc')[0].click();}
-			if(document.getElementsByClassName('exp-txt _qxg vk_arc')[0]){document.getElementsByClassName('exp-txt _qxg vk_arc')[0].click();}""")
+	with ghostObject.start() as ghost:
+		# Creates headless browser
+		# Opens the web page
+		ghost.open('https://www.google.ch/webhp?hl=de#safe=off&hl=en-CH&q=' + query)
+		ghost.wait_for_page_loaded()
+		# Gets desired element
 		ghost.sleep(1)
-		# If the elements were found, add all to our text 
-		for i in range(0, el.count()):
-			txt += el.at(i).toOuterXml()
-	# Refer to google
-	txt = txt.replace('src="//', 'src="https://')
-	txt = txt.replace('src="/', 'src="https://www.google.com/')
-	txt = txt.replace('href="/search', 'href="https://google.com/search')
-	txt = txt.replace('<select', '<select class="form-control" disabled')
-	txt = txt.replace('<input', '<input class="form-control" disabled')
-	txt = txt.replace('<button', '<button class="btn btn-primary" disabled')
-	txt = txt.replace('rows="', 'rows="0.')
-	return render_template('api.html', apicode=unicode(txt), query=query)
+		el = ghost.main_frame.findAllElements(".kp-blk")
+		txt = ""
+		if not (el.count()>0):
+			# If no elements are found, search for another possible element
+			el = ghost.main_frame.findFirstElement(".ct-cs")
+			txt = el.toOuterXml()
+			if (txt == ""):
+				ghost.wait_for_page_loaded()
+				el = ghost.main_frame.findFirstElement(".obcontainer")
+				ghost.sleep(1)
+				txt = el.toOuterXml()
+		else:
+			# Opens 'show more infos' buttons if available
+			# ghost.sleep is needed to give it time to open the button
+			ghost.evaluate("""if(document.getElementsByClassName('exp-txt _ubf vk_arc')[0]){document.getElementsByClassName('exp-txt _ubf vk_arc')[0].click();}
+				if(document.getElementsByClassName('exp-txt _qxg vk_arc')[0]){document.getElementsByClassName('exp-txt _qxg vk_arc')[0].click();}""")
+			ghost.sleep(1)
+			# If the elements were found, add all to our text 
+			for i in range(0, el.count()):
+				txt += el.at(i).toOuterXml()
+		# Refer to google
+		txt = txt.replace('src="//', 'src="https://')
+		txt = txt.replace('src="/', 'src="https://www.google.com/')
+		txt = txt.replace('href="/search', 'href="https://google.com/search')
+		txt = txt.replace('<select', '<select class="form-control" disabled')
+		txt = txt.replace('<input', '<input class="form-control" disabled')
+		txt = txt.replace('<button', '<button class="btn btn-primary" disabled')
+		txt = txt.replace('rows="', 'rows="0.')
+		return render_template('api.html', apicode=unicode(txt), query=query)
 
 @app.route('/logkey', methods=['POST'])
 def logkey():
@@ -145,40 +145,15 @@ def dropsession():
 
 @app.route('/getCalendar')
 def getCalendar():
-	user = User.query.filter_by(email=session['email']).first()
-	if (user is None):
-		return "false"
+	if('key' in session):
+		user = User.query.filter_by(email=session['email']).first()
+		if (user is None):
+			return "false"
+		else:
+			return user.calendarEvents
 	else:
-		return user.calendarEvents
+		return ""
 
 
-@app.route('/login')	
-def login():
-	ghost.open('https://accounts.google.com/ServiceLogin?sacu=1#identifier')
-	ghost.capture_to("google.png")
-	return "Done"
-
-@app.route('/setcommand', methods=['POST'])
-def setcommand():
-	if('command' in request.form):
-		command = request.form["command"]
-	else:
-		command = "failer"
-	if('sentence' in request.form):
-		sentence = request.form["sentence"]
-	else:
-		sentence = "failersentence"
-	if('userid' in request.form):
-		userid = request.form["userid"]
-	else:
-		userid = 404
-
-	newRelation = CommandRelation(sentence, command, userid)
-	db.session.add(newRelation)
-	db.session.commit()
-
-	user = User.query.filter_by(id = userid)
-
-	return "Set command: " + command + ", with sentence: " + sentence + " for user: " + user.email
 
 app.secret_key = secretkey
