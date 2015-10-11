@@ -1,21 +1,20 @@
-from flask import Flask, render_template, session, jsonify, request
+from flask import Flask, render_template, session, jsonify, request, Response
 from app import app 
 from app.models import *
 from ghost import Ghost 
 from app.config import *
 
+from sqlalchemy import desc
+from dateutil.parser import parse
 import datetime
 import json
 
 ghostObject = Ghost()
 
+### Functions with Route
 @app.route('/')
 def index():
 	return render_template('index.html', weatherApiKey=weatherApiKey)
-
-@app.route('/csstest')
-def csstest():
-	return render_template('csstest.html')
 
 @app.route('/gapi&q=<query>')
 def gapi(query):
@@ -43,7 +42,7 @@ def gapi(query):
 			ghost.evaluate("""if(document.getElementsByClassName('exp-txt _ubf vk_arc')[0]){document.getElementsByClassName('exp-txt _ubf vk_arc')[0].click();}
 				if(document.getElementsByClassName('exp-txt _qxg vk_arc')[0]){document.getElementsByClassName('exp-txt _qxg vk_arc')[0].click();}""")
 			ghost.sleep(1)
-			# If the elements were found, add all to our text 
+			# If the elements were found, add all elements to our text 
 			for i in range(0, el.count()):
 				txt += el.at(i).toOuterXml()
 		# Refer to google
@@ -58,23 +57,24 @@ def gapi(query):
 
 @app.route('/logkey', methods=['POST'])
 def logkey():
-	if('key' in request.form):
-		key = request.form["key"]
-	if('name' in request.form):
-		name = request.form["name"]
-	if('email' in request.form):
-		email = request.form["email"]
-	if('weather' in request.form):
-		weather = request.form["weather"]
-	if('events' in request.form):
-		events = request.form["events"]
+	key = checkForm('key');
+	name = checkForm('name');
+	email = checkForm('email');
+	weather = checkForm('weather');
+	calendar = checkForm('calendar');
+	sleep = checkForm('sleep');
+	events = checkForm('events');
+	if(events is None):
+		events = ""
 	# Get key and user from our database
 	check = Key.query.filter_by(keycode=key).first()
 	user = User.query.filter_by(email=email).first()
 	# Set results as python variables
 	weather = checkType(weather)
+	calendar = checkType(calendar)
+	sleep = checkType(sleep)
 	# Declare a new user
-	newuser = User(name, email, weather, events)
+	newuser = User(name, email, weather, calendar, sleep, events)
 	if (user is None):
 		# If the user is nonexistent in our databse, add him
 		db.session.add(newuser)
@@ -83,33 +83,25 @@ def logkey():
 		# Check if any changes were made to our user and update them
 		if (user.email != email):
 			user.email = email
-			db.session.commit()
 		if (user.username != name):
 			user.username = name
-			db.session.commit()
 		if (user.showWeather != weather):
 			user.showWeather = weather
-			db.session.commit()
+		if (user.showCalendar != calendar):
+			user.showCalendar = calendar
+		if (user.showSleep != sleep):
+			user.showSleep = sleep
 		if (user.calendarEvents != events):
 			user.calendarEvents = events
-			db.session.commit()
+		db.session.commit()
 	if (check is None):
 		# If the key is nonexistent in our database, add it
 		keycode = Key(key, email)
 		db.session.add(keycode)
 		db.session.commit()
-		return '<body style="background-color:#2c3e50;"><span style="color:#2ecc71;font-size:40px;text-transform: uppercase;font-family: Sans-serif;">Success!</span></body>'
+		return 'Success'
 	else:
-		return '<body style="background-color:#2c3e50;"><span style="color:#e74c3c;font-size:30px;text-transform: uppercase;font-family: Sans-serif;">Key already in use!</span></body>'
-
-
-def checkType(string):
-	if(string == "true"):
-		return True
-	elif(string == "false"):
-		return False
-	else:
-		return None
+		return 'Key already in use'
 
 @app.route('/getkey&key=<key>')
 def getkey(key):
@@ -135,13 +127,48 @@ def getkey(key):
 			session['username'] = user.username
 			session['email'] = user.email
 			session['weather'] = user.showWeather
-			return jsonify(key=key, username=user.username, email=user.email, weather=user.showWeather)
+			session['calendar'] = user.showCalendar
+			session['sleep'] = user.showSleep
+			return jsonify(key=key, username=user.username, email=user.email, weather=user.showWeather, calendar=user.showCalendar, sleep=user.showSleep)
 
-@app.route('/dropsession')
-def dropsession():
-	# Drop the session
-	session.clear()
-	return "Dropped"
+@app.route('/setSleep', methods=['POST', 'GET'])
+def setSleep():
+	if('email' in session):
+		hours = checkForm('hours');
+		date = checkForm('date');
+		datePy = parse(date)
+		newSleep = Sleep(hours, datePy, session['email'])
+		# If the user is nonexistent in our databse, add him
+		db.session.add(newSleep)
+		db.session.commit()
+		return "done"
+	else:
+		return False
+
+@app.route('/getSleep')
+def getSleep():
+	if('email' in session):
+		week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+		entities = Sleep.query.order_by(desc(Sleep.date)).limit(5).all()
+		length = Sleep.query.order_by(desc(Sleep.date)).limit(5).count()
+
+		labels = []
+		series = []
+		serie = []
+		
+		for i in range(length-1, -1, -1):
+			labels.append(week[(entities[i].date.weekday())])
+
+		for i in range(length-1, -1, -1):
+			serie.append(entities[i].duration)
+
+		series.append(serie)
+
+		js = {'labels': labels, 'series': series}
+
+		return jsonify(labels=labels, series=series)
+	else:
+		return "false"
 
 @app.route('/getCalendar')
 def getCalendar():
@@ -154,6 +181,26 @@ def getCalendar():
 	else:
 		return ""
 
+@app.route('/dropsession')
+def dropsession():
+	# Drop the session
+	session.clear()
+	return "Dropped"
 
+
+### Functions without Route
+def checkType(string):
+	if(string == "true"):
+		return True
+	elif(string == "false"):
+		return False
+	else:
+		return None
+
+def checkForm(string):
+	if(string in request.form):
+		return request.form[string]
+	else:
+		return None
 
 app.secret_key = secretkey

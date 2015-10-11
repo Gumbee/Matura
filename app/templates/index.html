@@ -22,11 +22,14 @@
 			<div class="google-box" id="google-box">
 			</div>
 		</div>
+		<div class="chart-container buffer-top-20 ct-chart ct-golden-section" id="sleep-container" style="display:none;">
+			
+		</div>
 		<div class="qr-code-container buffer-top-20" id="login-container">
 			<img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=1234567890&bgcolor=F5F5F5" width="150"></img><span class="center" id="login_text">Log In</span>
 		</div>
 	</div>
-	<div class="conversation-container" id="conversation-container">
+	<div class="conversation-container" id="conversation-container"style="display:none;">
 	</div>
 </div>
 <audio id="tts">
@@ -37,12 +40,12 @@
 <script>
 
 	"use strict";
-	var weatherApiKey = "{{ weatherApiKey }}";
-	var getCalendarEvents = function(){
-		
-	}
 
-    function randomString(length){
+	var dataChart;
+
+
+	// --------- Functions ---------
+	function randomString(length){
     	var text = "";
 	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	    for( var i=0; i < length; i++ ){
@@ -50,20 +53,16 @@
 	    }
 	    return text;
     }
-	
-	var randomKey = randomString(Math.random() * (40 - 30) + 30);
-	var keyChecked = false;
 
-	// Set QR-Code
-	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
 	// Refresh randomKey and QR-Code
-    function qr_refresh() {
+    function qr_refresh(){
     	randomKey = randomString(Math.random() * (40 - 30) + 30);
 		$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
     }
 
+
     // Functions to display various containers according to the preferences set on the App
-    var showContainer = function(value, container){
+    function showContainer(value, container){
     	if(value == "False" || value == "false"){
 	    	$("#"+container+"-container").addClass('closed');
 			var t = setTimeout(function(){$("#"+container+"-container").attr('style', 'display:none;');}, 1600);
@@ -73,96 +72,128 @@
 	    }
 	}
 
-	// Check if there are preferences stored in a session. If there are, aply them on the containers
-	showContainer("{{ session.weather }}", "weather");
 
-	// If there is a key stored in session, don't display QR-Code-Login
-    if("{{ session.key }}" != ""){
-		$("#qr").css('-webkit-transform', 'scale(0)');
-		setTimeout(function(){$("#qr").css('display', 'none');}, 700)
-		setTimeout(function(){
-			$("#login_text").html("Logged In as {{ session.username }}");
-			$("#login_text").addClass("rel_pos");
-		},710);
-		setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
-		keyChecked = true;
-		getCalendarEvents();
-		showContainer("true", "calendar");
-    }
-    
-    var logout = function(){
-		$.get("/dropsession", function(response){
+	var getSleep = function(){
+		$.get('/getSleep', function(response){
 			if(response != "false"){
-				$("#qr").css('display', 'block');
-				setTimeout(function(){$("#qr").css('-webkit-transform', 'scale(1)');}, 100);
-				$("#login_text").css('width', '210px');
-				$("#login_text").removeClass("rel_pos");
-				$("#login_text").html("Log In");
-				showContainer("true", "weather");
-				showContainer("false", "calendar");
-				$("#calendar-container").html("");
-				keyChecked = false;
+				dataChart = response;
+				new Chartist.Line('.ct-chart', dataChart, {
+					stretch: true,
+					showArea: true,
+					low: 0,
+					high: 14,
+					axisY: {
+						onlyInteger: true,
+					},
+					fullWidth: true,
+					chartPadding: {
+						right: 40
+					}
+				});
 			}
 		});
-
-
 	}
 
+    function visualLogout(){
+    	$("#qr").css('display', 'block');
+		setTimeout(function(){$("#qr").css('-webkit-transform', 'scale(1)');}, 100);
+		$("#login_text").css('width', '210px');
+		$("#login_text").removeClass("rel_pos");
+		$("#login_text").html("Log In");
+    }
 
-	var requestSite = function(site, type, parameters){
-		if(type == 'POST'){
-			if(typeof parameters === 'undefined'){
-				$.post(site, function(response){
-			        console.log(response);
-				});
-			}else{
-				$.post(site, parameters, function(response){
-			        console.log(response);
-				});
-			}
+    function visualLogin(username){
+    	if(typeof username === 'undefined'){
+	    	$("#qr").css('-webkit-transform', 'scale(0)');
+			setTimeout(function(){$("#qr").css('display', 'none');}, 700)
+			setTimeout(function(){
+				$("#login_text").html("Logged In as {{ session.username }}");
+				$("#login_text").addClass("rel_pos");
+			},710);
+			setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
 		}else{
-			$.get(site, function(response){
-				if(response != "false"){
-					console.log(response);
-				}
-			});
+			$("#qr").css('-webkit-transform', 'scale(0)');
+			setTimeout(function(){$("#qr").css('display', 'none');}, 700);
+			setTimeout(function(){
+				$("#login_text").html("Logged In as " + username);
+				$("#login_text").addClass("rel_pos");
+			},710);
+			setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
 		}
-	}
+    }
 
+	// Login function
 	// Check if the user has logged in himself by requesting an answer from the server
 	// If the answer is not "false" proceed to hide the QR-Code login and display the container
 	// according to the preferences the user set in the app
     function checkKey() {
     	if(!keyChecked){
-	    	$.get("/getkey&key=" + randomKey, function(response){
+	    	$.get('/getkey&key=' + randomKey, function(response){
 				if(response != "false"){
-					$("#qr").css('-webkit-transform', 'scale(0)');
-					setTimeout(function(){$("#qr").css('display', 'none');}, 700);
-					setTimeout(function(){
-						$("#login_text").html("Logged In as " + response.username);
-						$("#login_text").addClass("rel_pos");
-					},710);
-					setTimeout(function(){$("#login_text").css('width', '99%');}, 700);
+					visualLogin(response.username);
 					showContainer(response.weather.toString(), "weather")
+					showContainer(response.calendar.toString(), "calendar")
+					showContainer(response.sleep.toString(), "sleep");
+					getSleep();
+					getCalendarEvents();
 					keyChecked = true;
 					qr_refresh();
-					getCalendarEvents();
-					showContainer("true", "calendar");
 				}
 			});
     	}
     }
 
-    // Check the keys every 3 seconds and refresh the QR-Code every 5 minutes
-	var timeInterval = setInterval(function(){qr_refresh()}, 60000);
-	var keyInterval = setInterval(function(){checkKey()}, 3000);
-
-	// Display current time
+    // Display current time
 	function time(){
 		var now = moment().format("HH:mm");
 		document.getElementById("time").innerHTML = now;
 	}
+
+	var logout = function(){
+		$.get('/dropsession', function(response){
+			if(response != "false"){
+				visualLogout();
+				showContainer("true", "weather");
+				showContainer("false", "calendar");
+				showContainer("false", "sleep");
+				$("#calendar-container").html("");
+				keyChecked = false;
+			}
+		});
+	}
+
+
+	// Declare function for later use
+	var getCalendarEvents = function(){};
+
+	// ---------- Variables ----------
+	var weatherApiKey = "{{ weatherApiKey }}";
+	var randomKey = randomString(Math.random() * (40 - 30) + 30);
+	var keyChecked = false;
+
+    // Check the keys every 3 seconds and refresh the QR-Code every 5 minutes
+	var timeInterval = setInterval(function(){qr_refresh()}, 60000);
+	var keyInterval = setInterval(function(){checkKey()}, 3000);
+
 	var timeInterval = setInterval(function(){time()}, 500);
+
+	// Check if there are preferences stored in a session. If there are, aply them on the containers
+	showContainer("{{ session.weather }}", "weather");
+	showContainer("{{ session.calendar }}", "calendar");
+
+	// Set QR-Code
+	$('#qr').attr('src', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + randomKey + '&bgcolor=F5F5F5');
+
+	// If there is a key stored in session, don't display QR-Code-Login
+    if("{{ session.key }}" != ""){
+		visualLogin();
+		showContainer("{{ session.weather }}", "weather");
+		showContainer("{{ session.calendar }}", "calendar");
+		showContainer("{{ session.sleep }}", "sleep");
+		getSleep();
+		getCalendarEvents();
+		keyChecked = true;
+    }
 
 </script>
 <script src="{{ static('js/b-bone.js') }}"></script>

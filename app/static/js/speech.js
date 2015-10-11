@@ -1,5 +1,11 @@
 "use strict";
 
+// Variables
+
+var sleep = moment();
+var wake;
+
+
 // Command functions
 
 var searchGoogle = function(query) {
@@ -61,17 +67,28 @@ var scrollTopElements = function(){
 	h_scroll = 0;
 }
 
+var goToSleep = function(){
+	sleep = moment();
+}
+
+var wakeUp = function(){
+	wake = moment();
+	var duration = moment.duration(wake.diff(sleep));
+	var durationHours = duration.asHours();
+	var currentDate = moment().format("DD/MM/YYYY HH:mm A");
+	console.log(currentDate);
+
+    $.ajax({
+	  method: "POST",
+	  url: "/setSleep",
+	  data: { hours: durationHours, date: currentDate }
+	}).done(function( msg ) {
+	    console.log( "Data Saved: " + msg );
+	});
+}
+
 var logout = function(){
 	logout();
-}
-
-var reminderTo = function(query){
-	//Chrono parse
-}
-
-var reminderAbout = function(query){
-	//Chrono parse
-
 }
 
 var showCommands = function(){
@@ -143,6 +160,7 @@ var closeContainerParse = function(sentence){
 	var containers = [
 		'weather',
 		'calendar',
+		'sleep',
 		'information',
 		'login'
 	];
@@ -165,6 +183,7 @@ var openContainerParse = function(sentence){
 	var containers = [
 		'weather',
 		'calendar',
+		'sleep',
 		'information',
 		'login'
 	];
@@ -228,7 +247,7 @@ var kmp = function (string, pattern){
 
 	while(i<string.length && j<pattern.length){
 		if(string[i] == pattern[j]){
-			j++;
+			j++; 
 		}else{
 			while(j!=0){
 				j=prefix[j-1];
@@ -297,7 +316,12 @@ var getCommand = function (sentence) {
 		['scroll', 'bottom', 'element', scrollBottomElements],
 		['scroll', 'top', 'element', scrollTopElements],
 		['help', showCommands],
-		['log', 'out', logout]
+		['log', 'out', logout],
+		['calendar', openContainerParse],
+		['weather', openContainerParse]
+		['sleep', goToSleep]
+		['wake', 'up', wakeUp]
+		['awake', wakeUp]
 	];
 	
 	for(var x=0;x<CommandList.length;x++){

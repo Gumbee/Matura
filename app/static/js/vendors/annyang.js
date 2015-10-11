@@ -183,11 +183,6 @@
         invokeCallbacks(callbacks.result);
         var results = event.results[event.resultIndex];
         var finalLength = results.length;
-        var template = {confidence: 0, transcript: "google pizza"};
-        // TODO: Set appropriate addition of success command
-        // results[results.length] = template;
-        // TODO: Set condition for increment
-        // finalLength++;
         var commandText;
         
         var fallbackCommand;
