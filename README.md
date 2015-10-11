@@ -32,7 +32,7 @@
 ## Instructions
 If you are using port forwarding with 'chrome://inspect' you will have to check the 'port forwarding'-box on your app settings and have chrome opened on your mobile before scanning the QR-Code. 
 
-For the google-feature and the weather-feature to work you will have to establish a internet connection on the machine, that is operating the site. For the calendar-feature however you will only have to have a internet connection on your mobile. 
+For the google-feature and the weather-feature to work you will have to establish a internet connection on the machine which is running the site. For the calendar-feature however you will only have to have a internet connection on your mobile. 
 
 ## Further information
 The app will not be distributed on Github and is only available through personal distribution.
