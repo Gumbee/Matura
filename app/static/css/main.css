@@ -373,7 +373,7 @@ body {
 	bottom: 150px;
 	font-size: 25px;
 	background-color: #e67e22;
-	padding: 5px 70px 5px 70px;
+	padding: 5px 20px 5px 20px;
 }
 
 /* right side design end */
@@ -497,4 +497,5 @@ iframe[src^="https://apis.google.com"] {
 	margin-top: 40px;
 	text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.84);
 	text-transform: uppercase;
+	display: none;
 }

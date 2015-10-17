@@ -164,6 +164,9 @@
 }
 .iuth {
 	border-radius: 50%;
+	max-width: 200px;
+	height: auto;
+	padding-right: 10px;
 }
 .bicc {
 	float:left;
@@ -608,3 +611,7 @@ ul._kYe {
 .bili {
 	display: none;
 }
+#lu_map {
+	position: absolute;i
+}
+
