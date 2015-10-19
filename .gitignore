@@ -7,3 +7,4 @@ app/static/components/
 app/databases/
 app/ssl/
 app/config.py
+AndroidApp/

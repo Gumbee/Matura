@@ -1,4 +1,4 @@
-"use strict";
+ "use strict";
 
 // Variables
 
@@ -65,6 +65,10 @@ var scrollBottomElements = function(){
 var scrollTopElements = function(){
 	$('.scrt-ic').animate({ scrollTop: 0 }, 500);
 	h_scroll = 0;
+}
+
+var reloadPage = function(){
+	location.reload();
 }
 
 var goToSleep = function(){
@@ -216,7 +220,8 @@ if (annyang) {
 		'(could) (you) (please) scroll to (the) bottom (of) (the) element(s) (please)': scrollBottomElements,
 		'(could) (you) (please) scroll to (the) top (of) (the) element(s) (please)': scrollTopElements,
 		'(could) (you) (please) help (me) (please)': showCommands,
-		'(could) (you) (please) log (me) out': logout
+		'(could) (you) (please) log (me) out': logout,
+		'(could) (you) (please) reload (the) (page) (please)': reloadPage
 	};
 	// Add commands to annyang
 	annyang.addCommands(commands);
@@ -318,10 +323,11 @@ var getCommand = function (sentence) {
 		['help', showCommands],
 		['log', 'out', logout],
 		['calendar', openContainerParse],
-		['weather', openContainerParse]
-		['sleep', goToSleep]
-		['wake', 'up', wakeUp]
-		['awake', wakeUp]
+		['weather', openContainerParse],
+		['sleep', goToSleep],
+		['wake', 'up', wakeUp],
+		['awake', wakeUp],
+		['reload', reloadPage]
 	];
 	
 	for(var x=0;x<CommandList.length;x++){

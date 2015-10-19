@@ -27,7 +27,7 @@
     ```
     
 4. Create a directory named 'databases' and one named 'ssl' and place them inside the app directory
-5. Add your SSL certificate and key inside the ssl directory
+5. Add your SSL certificate and key inside the ssl directory.
 
 ## Instructions
 If you are using port forwarding with 'chrome://inspect' you will have to check the 'port forwarding'-box on your app settings and have chrome opened on your mobile before scanning the QR-Code. 

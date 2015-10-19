@@ -5,7 +5,7 @@ $(document).ready(function() {
     setTimeout(function(){$("body").attr('style', 'opacity:1;transform: scale(1);-webkit-transform: scale(1);')}, 1000);
 
 	showConversation();
-    var t = setInterval(function(){
+    var tConversation = setInterval(function(){
     	showConversation();
     }, 300000);
 
@@ -19,13 +19,13 @@ var showConversation = function(){
 	}, 1000);
 	
 	setConversation(getConversation());
-
+	
 	var w = setTimeout(function(){
 		$("#conversation-container").addClass('closed');
 		var tb = setTimeout(function(){
 			$("#conversation-container").attr('style', 'display:none;');
 		}, 1600);
-	}, 300000);
+	}, 60000);
 }
 
 var setConversation = function(conversation){

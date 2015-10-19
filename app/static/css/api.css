@@ -615,3 +615,17 @@ ul._kYe {
 	position: absolute;i
 }
 
+._Cdb.kno-fb-ctx {
+    padding: 0px !important;
+    width: 100% !important;
+    display: -webkit-inline-box;
+}
+
+._Uqb {
+    float: left;
+    padding: 5px;
+}
+
+._Sqb > ._Cdb.kno-fb-ctx > div > a.fl {
+    display: none !important;
+}
